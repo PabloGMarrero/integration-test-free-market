@@ -17,7 +17,7 @@ Se debe tener levantado los servicios product-sale-free-market y seller-user-fre
 
 ### Ejecución
 
-Para ejecutar los tests bastará con ejecutar el comando `pytest /tests` en una terminal bash, si se encuentra en Windows el comando es `pytests .\tests\`
+Para ejecutar los tests bastará con ejecutar el comando `pytest /tests` en una terminal bash, si se encuentra en Windows el comando es `pytest .\tests\`
 
 ## Estructura
 
