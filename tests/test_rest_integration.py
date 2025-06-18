@@ -38,11 +38,11 @@ def test_creacion_producto_ok():
     product_response = response_product.json()
     product_id = product_response["id"]
 
-    assert product_response["name"] == product_response["name"]
-    assert product_response["description"] == product_response["description"]
-    assert product_response["category"] == product_response["category"]
-    assert product_response["price"] == product_response["price"]
-    assert product_response["stock"] == product_response["stock"]
+    assert product_request["name"] == product_response["name"]
+    assert product_request["description"] == product_response["description"]
+    assert product_request["category"] == product_response["category"]
+    assert product_request["price"] == product_response["price"]
+    assert product_request["stock"] == product_response["stock"]
     assert product_id is not None
 
     # Eliminar datos
@@ -80,9 +80,62 @@ def test_creacion_vendedor_error_mismo_request():
     assert response.status_code == 204
 
 @pytest.mark.integration
+def test_creacion_producto_error_producto_ya_existente():
+    # Crear vendedor
+    create_seller_url = f"{URL_SELLER_USER}/seller"
+    seller_request = generar_seller()
+    response_seller = requests.post(create_seller_url, json=seller_request)
+
+    # Verificar que la respuesta es válida
+    assert response_seller.status_code == 200
+
+    # Validación respuesta creación vendedor
+    seller_response = response_seller.json()
+    seller_id = seller_response["id"]
+
+    assert seller_response["company_name"] == seller_request["company_name"]
+    assert seller_response["company_email"] == seller_request["company_email"]
+    assert seller_id is not None
+
+    # Payload para crear producto
+    product_request = generar_producto(seller_id=seller_id)
+    
+    # Crear producto
+    create_product_url = f"{URL_PRODUCT_SALE}/product"
+    response_product = requests.post(create_product_url, json=product_request)
+
+    # Verificar que la respuesta es válida
+    assert response_product.status_code == 200
+
+    # Validación respuesta creación producto
+    product_response = response_product.json()
+    product_id = product_response["id"]
+
+    # Se ejecuta nuevamente request producto
+    create_product_url = f"{URL_PRODUCT_SALE}/product"
+    response_product = requests.post(create_product_url, json=product_request)
+    
+    # Verificar que la respuesta es válida
+    product_name = product_request["name"]
+    expected_message = f"Seller with id {seller_id} already has a registered product with name {product_name}."
+    assert response_product.status_code == 400
+    assert response_product.json()["message"] == expected_message
+
+    # Eliminar datos
+    delete_product_url = f"{URL_PRODUCT_SALE}/product/{product_id}"
+    response = requests.delete(delete_product_url)
+    
+    assert response.status_code == 204
+
+    delete_seller_url = f"{URL_SELLER_USER}/seller/{seller_id}"
+    response = requests.delete(delete_seller_url)
+
+    assert response.status_code == 204
+
+@pytest.mark.integration
 def test_creacion_venta_ok():
     # Crear usuario
-    create_user_url = "{URL_SELLER_USER}/user"
+    create_user_url = f"{URL_SELLER_USER}/user"
     user_request = generar_user()
     response_user = requests.post(create_user_url, json=user_request)
 
